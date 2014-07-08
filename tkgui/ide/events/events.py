@@ -4,22 +4,21 @@
 import os
 import sys
 from datetime import datetime
+from PIL import ImageTk
 
 from Tkinter import Text, Button, Frame, END, FLAT, LEFT, Y, X, CURRENT, SEL_FIRST, SEL_LAST, INSERT, GROOVE
 
-from PIL import Image, ImageTk
 from ..code_editor.pinguino_code_editor import PinguinoCodeEditor
 from ..methods.methods import PinguinoEvents
 from ..methods.dialogs import Dialogs
+from ..methods.decorators import Decorator
 
 
 ########################################################################
 class PinguinoEvents(PinguinoEvents):
-    """"""
 
     #----------------------------------------------------------------------
     def connect_events(self):
-        """"""
 
         toolbar_icons = [("document-new", self.new_file),
                         ("document-open", self.open_file),
@@ -44,8 +43,8 @@ class PinguinoEvents(PinguinoEvents):
                         ("separator", None),
 
                         ("applications-electronics", self.new_file),
-                        ("system-run", self.new_file),
-                        ("emblem-downloads", self.new_file),
+                        ("system-run", self.pinguino_compile),
+                        ("emblem-downloads", self.pinguino_upload),
                         ]
 
         for icon, function in toolbar_icons:
@@ -56,7 +55,8 @@ class PinguinoEvents(PinguinoEvents):
 
             else:
                 icon = os.path.join("tkgui", "resources", "themes", "pinguino11", icon+".png")
-                eimg = ImageTk.PhotoImage(Image.open(icon))
+                #eimg = ImageTk.PhotoImage(Image.open(icon))
+                eimg = ImageTk.PhotoImage(file=icon)
 
                 button = Button(self.toolBar, image=eimg, relief=FLAT, command=function, borderwidth=0, highlightthickness=0)
                 button.image = eimg
@@ -84,6 +84,7 @@ class PinguinoEvents(PinguinoEvents):
         frame_edit = PinguinoCodeEditor(self)
         textedit = frame_edit.textedit
         textedit.insert(END, file_ + "\n\n" + minimun)
+        textedit.update_syntax()
         self.noteBook.add(frame_edit, text=filename)
 
         #tab = self.noteBook.tab(self.noteBook.tabs()[-1])
@@ -111,18 +112,13 @@ class PinguinoEvents(PinguinoEvents):
         frame_edit = PinguinoCodeEditor(self)
         textedit = frame_edit.textedit
         textedit.insert(END, content)
+        textedit.update_syntax()
         self.noteBook.add(frame_edit, text=os.path.split(filename)[-1])
-
-        #tab = self.noteBook.tab(self.noteBook.tabs()[-1])
 
         self.noteBook.select(self.noteBook.tabs()[-1])
         self.Files[self.noteBook.select()] = {}
         self.Files[self.noteBook.select()]["textedit"] = textedit
         self.Files[self.noteBook.select()]["filename"] = filename
-
-        #self.Files[self.noteBook.tabs()[-1].id] = textedit
-        #setattr(textedit, "filename", filename)
-
         self.check_notebook_visibility()
 
 
@@ -139,6 +135,8 @@ class PinguinoEvents(PinguinoEvents):
             self.parent.title(os.getenv("NAME")+" - "+file.name)
             file.writelines(textedit.get("0.0", END))
             file.close()
+            return True
+        return False
 
 
     #----------------------------------------------------------------------
@@ -162,6 +160,7 @@ class PinguinoEvents(PinguinoEvents):
             if Dialogs.set_no_saved_file(self.get_tab("text")):
                 self.save_file()
 
+        self.Files.pop(self.noteBook.select())
         self.noteBook.deletecommand(self.noteBook.select())
         self.check_notebook_visibility()
 
@@ -176,7 +175,8 @@ class PinguinoEvents(PinguinoEvents):
 
     #----------------------------------------------------------------------
     def close_ide(self, event=None):
-        sys.exit(0)
+
+        self.master.destroy()
 
 
     #----------------------------------------------------------------------
@@ -218,3 +218,120 @@ class PinguinoEvents(PinguinoEvents):
         textedit.selection_clear()
         text = textedit.selection_get(selection='CLIPBOARD')
         textedit.insert(INSERT, text)
+
+
+
+    #----------------------------------------------------------------------
+    @Decorator.requiere_open_files()
+    @Decorator.requiere_file_saved()
+    @Decorator.requiere_can_compile()
+    def pinguino_compile(self, event=None):
+
+    ##----------------------------------------------------------------------
+    #def pinguino_compile(self, dialog_upload=True):
+
+        filename = self.get_current_filename()
+        compile_code = lambda :self.pinguinoAPI.compile_file(filename)
+
+        self.set_board()
+        #reply = Dialogs.confirm_board(self)
+        #if reply == False:
+            #self.__show_board_config__()
+            #return False
+        #elif reply == None:
+            #return False
+
+        self.write_log("compilling: %s"%filename)
+        self.write_log(self.get_description_board())
+        self.write_log("")
+
+        compile_code()
+        self.post_compile()
+
+
+    #----------------------------------------------------------------------
+    def post_compile(self):
+
+        #self.main.actionUpload.setEnabled(self.pinguinoAPI.compiled())
+        if not self.pinguinoAPI.compiled():
+
+            errors_preprocess = self.pinguinoAPI.get_errors_preprocess()
+            if errors_preprocess:
+                for error in errors_preprocess["preprocess"]:
+                    self.write_log("ERROR: "+error)
+
+            errors_c = self.pinguinoAPI.get_errors_compiling_c()
+            if errors_c:
+                self.write_log("ERROR: "+errors_c["complete_message"])
+                line_errors = errors_c["line_numbers"]
+                for line_error in line_errors:
+                    self.highligh_line(line_error, "#ff7f7f")
+
+            errors_asm = self.pinguinoAPI.get_errors_compiling_asm()
+            if errors_asm:
+                for error in errors_asm["error_symbols"]:
+                    self.write_log("ERROR: "+error)
+
+            errors_linking = self.pinguinoAPI.get_errors_linking()
+            if errors_linking:
+                for error in errors_linking["linking"]:
+                    self.write_log("ERROR: "+error)
+
+                line_errors_l = errors_linking["line_numbers"]
+                for line_error in line_errors_l:
+                    self.highligh_line(line_error, "#ff7f7f")
+
+
+            if errors_asm or errors_c:
+                if Dialogs.error_while_compiling():
+                    self.__show_stdout__()
+            elif errors_linking:
+                if Dialogs.error_while_linking():
+                    self.__show_stdout__()
+            elif errors_preprocess:
+                if Dialogs.error_while_preprocess():
+                    self.__show_stdout__()
+
+            else:
+                if Dialogs.error_while_unknow():
+                    self.__show_stdout__()
+
+        else:
+            result = self.pinguinoAPI.get_result()
+            self.write_log("compilation done")
+            self.write_log(result["code_size"])
+            self.write_log("%s seconds process time"%result["time"])
+
+
+            Dialogs.compilation_done()
+
+
+    #----------------------------------------------------------------------
+    def highligh_line(self, line, color):
+        """"""
+
+
+    #----------------------------------------------------------------------
+    def pinguino_upload(self, event=None):
+        """"""
+
+
+    #----------------------------------------------------------------------
+    def get_description_board(self):
+
+        board = self.pinguinoAPI.get_board()
+        board_config = "Board: %s\n" % board.name
+        board_config += "Proc: %s\n" % board.proc
+        board_config += "Arch: %d\n" % board.arch
+
+        if board.arch == 32:
+            board_config += "MIPS 16: %s\n" % str(self.configIDE.config("Board", "mips16", True))
+            board_config += "Heap size: %d bytes\n" % self.configIDE.config("Board", "heapsize", 512)
+            board_config += "Optimization: %s\n" % self.configIDE.config("Board", "optimization", "-O3")
+
+        if board.arch == 8 and board.bldr == "boot4":
+            board_config += "Boootloader: v4\n"
+        if board.arch == 8 and board.bldr == "boot2":
+            board_config += "Boootloader: v1 & v2\n"
+
+        return board_config

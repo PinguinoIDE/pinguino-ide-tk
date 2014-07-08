@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
+import os
 import webbrowser
 
-from Tkinter import CURRENT, LEFT, BOTH
+from Tkinter import Tk, CURRENT, LEFT, BOTH, Toplevel
+
+from ..child_windows.stdout import Stdout
+from ..child_windows.paths import Paths
 
 
 ########################################################################
@@ -60,6 +64,69 @@ class PinguinoEvents(object):
         if tabs > 0: self.banner.pack_forget()
         else: self.banner.pack(side=LEFT, fill=BOTH, expand=True)
 
+
     #----------------------------------------------------------------------
     def open_web_site(self, url):
         webbrowser.open_new_tab(url)
+
+
+    #----------------------------------------------------------------------
+    def set_board(self):
+
+        board_name = self.configIDE.config("Board", "board", "Pinguino 2550")
+        for board in self.pinguinoAPI._boards_:
+            if board.name == board_name:
+                self.pinguinoAPI.set_board(board)
+
+        arch = self.configIDE.config("Board", "arch", 8)
+        if arch == 8:
+            bootloader = self.configIDE.config("Board", "bootloader", "v1_v2")
+            if bootloader == "v1_v2":
+                self.pinguinoAPI.set_bootloader(self.pinguinoAPI.Boot2)
+            else:
+                self.pinguinoAPI.set_bootloader(self.pinguinoAPI.Boot4)
+
+        os.environ["PINGUINO_BOARD_ARCH"] = str(arch)
+
+        compiler = self.configIDE.get_path("sdcc_bin"), "sdcc"
+
+        if os.getenv("PINGUINO_OS_NAME") == "windows":
+            ext = ".exe"
+        elif os.getenv("PINGUINO_OS_NAME") == "linux":
+            ext = ""
+
+        if arch == 8:
+            compiler = os.path.exists(os.path.join(self.configIDE.get_path("sdcc_bin"), "sdcc" + ext))
+            libraries = os.path.exists(self.configIDE.get_path("pinguino_8_libs"))
+
+        elif arch == 32:
+            #RB20140615:
+            #- gcc toolchain has been renamed from mips-elf-gcc to p32-gcc
+            #- the toolchain is now based on gcc 4.8.2
+            #compiler = os.path.exists(os.path.join(self.configIDE.get_path("gcc_bin"), "mips-elf-gcc-4.5.2" + ext))
+            compiler = os.path.exists(os.path.join(self.configIDE.get_path("gcc_bin"), "p32-gcc" + ext))
+            libraries = os.path.exists(self.configIDE.get_path("pinguino_32_libs"))
+
+        no_compile = False
+        if not compiler: no_compile = True
+        elif  not libraries: no_compile = True
+        if not libraries and not compiler: no_compile = True
+
+        if no_compile: os.environ["PINGUINO_CAN_COMPILE"] = "False"
+        else: os.environ["PINGUINO_CAN_COMPILE"] = "True"
+
+
+
+    #----------------------------------------------------------------------
+    def __show_stdout__(self, event=None):
+
+        root = Toplevel()
+        app = Stdout(master=root)
+        app.mainloop()
+
+    #----------------------------------------------------------------------
+    def __show_paths__(self, event=None):
+
+        root = Toplevel()
+        app = Paths(master=root, main=self)
+        app.mainloop()

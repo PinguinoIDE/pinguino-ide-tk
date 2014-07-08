@@ -1,67 +1,82 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
+import os
+from PIL import ImageTk
+
 from Tkinter import Text, Frame, Menu, Button, Label, CENTER
-
-
 from Tkinter import RAISED, LEFT, TOP, X, BOTH, Y, BOTTOM, RIGHT, END, SUNKEN, NO, YES, DISABLED, NORMAL, FLAT, GROOVE, RIDGE
 from ttk import Notebook, Style, Treeview, Scrollbar, Separator
 
-from events.events import PinguinoEvents
 from styles import TkStyles
+from events.events import PinguinoEvents
+from ..pinguino_api.pinguino import Pinguino, AllBoards
+from ..pinguino_api.pinguino_config import PinguinoConfig
+from .methods.config import Config
 
-from PIL import Image, ImageTk
 
-import os
-
-from pinguino_api.pinguino_config import PinguinoConfig
-
+########################################################################
 class PinguinoIDE(Frame, PinguinoEvents):
 
     def __init__(self, master=None):
-        Frame.__init__(self, master)
-        #super(PinguinoIDE, self).__init__(self, master) #tkinter is old-style classes, this not work
 
+        Frame.__init__(self, master)
 
         self.parent = master
 
         self.parent.geometry("640x480")
-
-        TkStyles.create_styles()
-
-        self.Files = {}
-
         self.parent.title(os.getenv("NAME"))
 
+        icon = os.path.join(os.getcwd(), "tkgui", "resources", "art", "pinguino11.xbm")
+        self.parent.wm_iconbitmap("@"+icon)
+
+        TkStyles.create_styles()
+        self.Files = {}
+
         PinguinoConfig.set_environ_vars()
+        PinguinoConfig.check_user_files()
+
+        self.pinguinoAPI = Pinguino()
+        self.pinguinoAPI._boards_ = AllBoards
+
+        self.configIDE = Config()
+
+        PinguinoConfig.update_pinguino_paths(self.configIDE, self.pinguinoAPI)
+        PinguinoConfig.update_pinguino_extra_options(self.configIDE, self.pinguinoAPI)
+        PinguinoConfig.update_user_libs(self.pinguinoAPI)
+        self.pinguinoAPI.set_os_variables()
+
+        self.set_board()
+
+
+
 
 
         self.build_menu()
 
-
         self.buil_output()
         self.buil_toolbar()
         self.build_notebook()
-        #self.examples_view()
-
-
         self.connect_events()
 
-
         self.pack(fill=BOTH, expand=True)
-
 
         self.parent.config(menu=self.menuBar)
 
 
+        os_name = os.getenv("PINGUINO_OS_NAME")
+        if os_name == "windows":
+            os.environ["PATH"] = os.environ["PATH"] + ";" + self.configIDE.get_path("sdcc_bin")
 
+        elif os_name == "linux":
+            os.environ["LD_LIBRARY_PATH"]="/usr/lib32:/usr/lib:/usr/lib64"
 
 
     #----------------------------------------------------------------------
     def build_notebook(self):
 
         banner = os.path.join("tkgui", "resources", "art", "banner.png")
-        tkimage = ImageTk.PhotoImage(Image.open(banner))
+        tkimage = ImageTk.PhotoImage(file=banner)
         self.banner = Label(self, image=tkimage, justify = CENTER, height = 400, bg="#afc8e1")
         self.banner.photo = tkimage
         self.banner.pack(side=LEFT, fill=BOTH, expand=True)
@@ -72,7 +87,7 @@ class PinguinoIDE(Frame, PinguinoEvents):
 
     #----------------------------------------------------------------------
     def build_menu(self):
-        """"""
+
         self.menuBar = Menu(self, borderwidth=1, relief=FLAT)
 
         filemenu = Menu(self.menuBar, tearoff=0)
@@ -100,12 +115,14 @@ class PinguinoIDE(Frame, PinguinoEvents):
 
         configmenu = Menu(self.menuBar, tearoff=0)
         configmenu.add_command(label="Board Settings", command=self.new_file)
-        configmenu.add_command(label="System paths", command=self.new_file)
+        configmenu.add_command(label="System paths", command=self.__show_paths__)
         self.menuBar.add_cascade(label="Configuration", menu=configmenu)
 
         pinguinomenu = Menu(self.menuBar, tearoff=0)
-        pinguinomenu.add_command(label="Compile", command=self.new_file, accelerator="F5")
-        pinguinomenu.add_command(label="Upload", command=self.new_file, accelerator="F6")
+        pinguinomenu.add_command(label="Compile", command=self.pinguino_compile, accelerator="F5")
+        pinguinomenu.add_command(label="Upload", command=self.pinguino_upload, accelerator="F6")
+        pinguinomenu.add_separator()
+        pinguinomenu.add_command(label="Stdout", command=self.__show_stdout__, accelerator="F9")
         self.menuBar.add_cascade(label="Pinguino", menu=pinguinomenu)
 
         self.menuBar.add_cascade(label="Examples", menu=self.examples_view())
@@ -140,8 +157,9 @@ class PinguinoIDE(Frame, PinguinoEvents):
         self.master.bind_all("<Control-C>", self.edit_copy)
         self.master.bind_all("<Control-V>", self.edit_paste)
 
-        #self.master.bind_all("<Control-V>", self.edit_paste)
-        #self.master.bind_all("<Control-V>", self.edit_paste)
+        self.master.bind_all("<F5>", self.pinguino_compile)
+        self.master.bind_all("<F6>", self.pinguino_upload)
+        self.master.bind_all("<F9>", self.__show_stdout__)
 
 
     #----------------------------------------------------------------------
@@ -159,8 +177,9 @@ class PinguinoIDE(Frame, PinguinoEvents):
             abspath = os.path.join(path, p)
 
             if os.path.isfile(abspath):
-                label = os.path.split(abspath)[1]
-                menu.add_command(label=label, command=lambda :self.open_file(abspath))
+                if abspath.endswith(".pde"):
+                    label = os.path.split(abspath)[1]
+                    menu.add_command(label=label, command=lambda :self.open_file(abspath))
 
             if os.path.isdir(abspath):
                 label = os.path.split(abspath)[1]
@@ -183,8 +202,7 @@ class PinguinoIDE(Frame, PinguinoEvents):
     #----------------------------------------------------------------------
     def buil_output(self):
 
-
-        self.output = Text(self, bg="#333333", fg="#ffffff", height=10, borderwidth=0, relief=FLAT, highlightthickness=0)
+        self.output = Text(self, bg="#333333", fg="#ffffff", height=10, borderwidth=0, relief=FLAT, highlightthickness=0, font="mono 10")
         HEAD = os.getenv("NAME") + " " + os.getenv("VERSION") + "\n"
         self.output.pack(side=BOTTOM, fill=X, expand=False)
         self.output.insert(END, "\n "+HEAD)
@@ -192,24 +210,21 @@ class PinguinoIDE(Frame, PinguinoEvents):
 
         Frame(self, height=4, bg="#afc8e1").pack(side=BOTTOM, fill=X, expand=False)
 
+
     #----------------------------------------------------------------------
     def write_log(self, *args, **kwargs):
 
-        lines = ""
+        lines = " "
         for line in args:
-            lines += " " + line
-            #self.main.plainTextEdit_output.appendPlainText(line)
+            lines += line + "\n"
 
         for key in kwargs.keys():
             line = key + ": " + kwargs[key]
             lines += line
 
-        self.output.config(state=NORNAL)
-        self.output.insert(END, lines)
+        self.output.config(state=NORMAL)
+        self.output.insert(END, lines.replace("\n", "\n ")[:-1])
+        self.output.see(END)
         self.output.config(state=DISABLED)
 
 
-
-    #----------------------------------------------------------------------
-    def build(self):
-        """"""

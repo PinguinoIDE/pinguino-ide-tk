@@ -3,7 +3,7 @@
 
 
 from tkFileDialog import askopenfile, asksaveasfile
-from tkMessageBox import askyesno
+from tkMessageBox import askyesno, showinfo, showwarning, showerror
 
 
 import os
@@ -45,3 +45,76 @@ class Dialogs(object):
 
         return askyesno(os.getenv("NAME")+" - Save", "This file has not been saved,\nWould you like to do?\n\n"+filename[:-1])
 
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def save_before_compile(cls):
+
+        showinfo(os.getenv("NAME")+" - Save file first", "You must save the file before compiling.")
+        return True
+
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def warning_message(cls, message):
+
+        showwarning(os.getenv("NAME") + " - Warning", message)
+        return True
+
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def error_while_compiling(cls):
+
+        showerror(os.getenv("NAME") + " - Error", "Error while compiling.")
+        return True
+
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def error_while_linking(cls):
+
+        showerror(os.getenv("NAME") + " - Error", "Error while linking.")
+        return True
+
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def error_while_preprocess(cls):
+
+        showerror(os.getenv("NAME") + " - Error", "Error while preprocess.")
+        return True
+
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def error_while_unknow(cls):
+
+        showerror(os.getenv("NAME") + " - Error", "Unknow error.")
+        return True
+
+
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def confirm_message(cls, message):
+
+        return askyesno(os.getenv("NAME")+" - Confirmation", message)
+
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def error_message(cls, message):
+
+        return showerror(os.getenv("NAME")+" - Error", message)
+
+
+
+
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def compilation_done(cls):
+        """"""
+        showinfo(os.getenv("NAME")+" - Compiled", "Compilation done!")
+        return True

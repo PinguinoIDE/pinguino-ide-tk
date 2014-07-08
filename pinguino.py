@@ -3,14 +3,14 @@
 
 NAME = "Pinguino IDE"
 VERSION = "11.0"
-SUBVERSION = "raspberry"
+SUBVERSION = "beta.1"
 #DESCRIPTION = ""
 #LONG_DESCRIPTION = ""
 
 ################################################################################
 
 """-------------------------------------------------------------------------
-    Pinguino IDE
+    Pinguino IDE Tk
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -57,6 +57,12 @@ if __name__ == "__main__":
         from tkgui.ide import PinguinoIDE
 
         root = Tk()
+
+        #icon = os.path.join("tkgui", "resources", "art", "pinguino11.ico")
+        #root.iconbitmap(icon)
+        #root.tk.call('wm', 'iconbitmap', self._w, '-default', 'pinguino11.ico')
+
+
         app = PinguinoIDE(master=root)
 
         #app.parent.configure(background = 'red')

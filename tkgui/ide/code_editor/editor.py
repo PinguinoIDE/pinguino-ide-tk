@@ -1,67 +1,69 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-from Tkinter import Text, INSERT, END, Label, DISABLED, NORMAL
+import re
+
+from Tkinter import Text, INSERT, END, Label, DISABLED, NORMAL, IntVar
 
 from ..methods.syntax import directives, const
 
-import re
-
+########################################################################
 class PinguinoTextEdit(Text):
 
-
-    tags = {'directive': '#d36820',
-            'reserved': '#0000ff',
-            "number": "#ff0000",
-            "dquot": "#7f0000",
-            "squot": "#cc0000",
-            "scomment": "#007F00",
-            }
-
+    #----------------------------------------------------------------------
     def __init__(self, root=None, **args):
+
         Text.__init__(self, root, **args)
-        self.config_tags()
-
         self.main = self.master.master
-
-        self.bind('<Key>', self.key_press)
+        self.create_syntas_tags()
+        self.bind("<Key>", self.update_syntax)
 
         self.config(maxundo=15, undo=True)
         self.update_linenumber()
 
 
+    #----------------------------------------------------------------------
+    def create_syntas_tags(self):
+
+        self.tag_configure("directive", foreground="#d36820", font="mono 11")
+        self.tag_configure("reserved", foreground="#0000ff", font="mono 11")
+        self.tag_configure("number", foreground="#ff0000", font="mono 11")
+        self.tag_configure("dquot", foreground="#7f0000", font="mono 11")
+        self.tag_configure("squot", foreground="#cc0000", font="mono 11")
+        self.tag_configure("dcomment", foreground="#c81818", font="mono 11")
+        self.tag_configure("scomment", foreground="#007F00", font="mono 11")
+        #self.tag_configure("operators", foreground="#000000", font="mono 11")
+
 
     #----------------------------------------------------------------------
     def set_linenumber(self, linenumber):
-        """"""
+
         self.linenumber = linenumber
 
 
     #----------------------------------------------------------------------
     def set_scrolls(self, xsb, ysb):
-        """"""
+
         self.xsb = xsb
         self.ysb = ysb
 
 
-
     #----------------------------------------------------------------------
     def update_linenumber(self, event=None):
-        """"""
+
         self.after(10, self.update_delay)
 
+
+    #----------------------------------------------------------------------
     def update_delay(self):
+
         lines = self.get("0.0", END).count("\n")
         numbers = "\n".join(map(lambda s:" "+str(s).rjust(4, " ")+" ", range(1, lines+1)))
-
-        #self.linenumber.numbers.configure(text=numbers)
         self.linenumber.numbers.config(state=NORMAL)
         self.linenumber.numbers.delete("0.0", END)
         self.linenumber.numbers.insert(END, numbers)
         self.linenumber.numbers.config(state=DISABLED)
-
         self.linenumber.numbers.yview_moveto(self.yview()[0])
-
 
 
     #----------------------------------------------------------------------
@@ -69,91 +71,81 @@ class PinguinoTextEdit(Text):
 
         if not self.main.noteBook.tab(self.main.noteBook.select())["text"].endswith("*"):
             self.main.set_tab_text_changed(True)
-
         self.update_linenumber()
 
 
-    def config_tags(self):
-        for tag, val in self.tags.items():
-            self.tag_config(tag, foreground=val)
+    #----------------------------------------------------------------------
+    def update_syntax(self, key=None):
 
-    def remove_tags(self, start, end):
-        for tag in self.tags.keys():
-            self.tag_remove(tag, start, end)
+        if not key is None: self.text_changed()
+        for name in self.tag_names(): self.tag_delete(name)
+        self.create_syntas_tags()
 
-    def key_press(self, key):
+        #directives
+        self.highlight_pattern("(#"+"|#".join(directives)+")", "directive")
+        self.highlight_pattern("#[ ]*[define|include|ifndef|endif|pragma][ ]*.*", "directive")
 
-        self.text_changed()
+        #decimal
+        self.highlight_pattern("\y[\d]+\y", "number")
 
-        cline = self.index(INSERT).split('.')[0]
-        lastcol = 0
-        char = self.get('%s.%d'%(cline, lastcol))
-        while char != '\n':
-            lastcol += 1
-            char = self.get('%s.%d'%(cline, lastcol))
+        #floats
+        self.highlight_pattern("\y[\d]+\.[\d]+\y", "number")
 
-        buffer = self.get('%s.%d'%(cline,0),'%s.%d'%(cline,lastcol))
-        tokenized = buffer.split(' ')
+        #bin
+        self.highlight_pattern("\y0[Bb][01]+\y", "number")
 
-        self.remove_tags('%s.%d'%(cline, 0), '%s.%d'%(cline, lastcol))
+        #hexa
+        self.highlight_pattern("\y0[Xx][A-Fa-f\d]+\y", "number")
 
-        start, end = 0, 0
-        for token in tokenized:
-            end = start + len(token)
+        #reserved
+        self.highlight_pattern("("+"|".join(const)+")", "reserved")
 
-            #directives
-            if token in map(lambda x:"#"+x, directives):
-                self.tag_add('directive', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
-            elif re.match("#[ ]*[define|include|ifndef|endif|pragma][ ]*.*", token):
-                self.tag_add('directive', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
+        ##operators
+        #self.highlight_pattern("[()\[\]{}<>=\-\+\*\\%#!~&^,]", "operators")
 
-            #reserved
-            elif token in const:
-                self.tag_add('reserved', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
+        #library.function
+        self.highlight_pattern("[^0-9][a-zA-Z0-9_]*\.[^0-9][a-zA-Z0-9_][^\\(]*", "reserved")
 
-            #library.function
-            elif re.match("\\b[\D][\w]*\.[\D][\w]*", token):
-                self.tag_add('reserved', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
+        #double quotation
+        self.highlight_pattern(r'"[^"\\]*(\\.[^"\\]*)*"', "dquot")
 
-            #decimal
-            elif re.match("\\b[\d]+\\b", token):
-                self.tag_add('number', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
+        #single quotation
+        self.highlight_pattern(r"'[^'\\]*(\\.[^'\\]*)*'", "squot")
 
-            #floats
-            elif re.match("\\b[\d]+\.[\d]+\\b", token):
-                self.tag_add('number', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
+        #single line comment
+        self.highlight_pattern(r'//[^\n]*', "scomment")
 
-            #hexa
-            elif re.match("\\b0[Xx][A-Fa-f\d]+\\b", token):
-                self.tag_add('number', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
+        #multi line comment
+        start = self.index("1.0")
+        end = self.index("end")
+        self.mark_set("matchStart", start)
+        self.mark_set("matchEnd", start)
+        self.mark_set("searchLimit", end)
 
-            #bin
-            elif re.match("\\b0[Bb][01]+\\b", token):
-                self.tag_add('number', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
-
-            ##quotation
-            #elif re.match(r'"[^"\\]*(\\.[^"\\]*)*"', token):
-                #self.tag_add('dquot', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
-            #elif re.match(r"'[^'\\]*(\\.[^'\\]*)*'", token):
-                #self.tag_add('squot', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
-
-            ##single line comment
-            #elif re.match(r'//[^\n]*', token):
-                #self.tag_add('scomment', '%s.%d'%(cline, start), '%s.%d'%(cline, end))
+        count = IntVar()
+        self.mark_set("searchLimit", "end")
+        while True:
+            index = self.search("/*", "matchEnd", "searchLimit", count=count, regexp=False)
+            if index == "": break
+            self.mark_set("matchStart", index)
+            index = self.search("*/", "matchEnd", "searchLimit", count=count, regexp=False)
+            self.mark_set("matchEnd", "%s+%sc" % (index,count.get()))
+            self.tag_add("dcomment", "matchStart","matchEnd")
 
 
+    #----------------------------------------------------------------------
+    def highlight_pattern(self, pattern, tag, start="1.0", end="end", regexp=True):
 
+        start = self.index(start)
+        end = self.index(end)
+        self.mark_set("matchStart", start)
+        self.mark_set("matchEnd", start)
+        self.mark_set("searchLimit", end)
 
-
-            #else:
-                #for index in range(len(token)):
-                    #try:
-                        #int(token[index])
-                    #except ValueError:
-                        #pass
-                    #else:
-                        #self.tag_add('int', '%s.%d'%(cline, start+index))
-
-
-
-            start += len(token)+1
+        count = IntVar()
+        while True:
+            index = self.search(pattern, "matchEnd", "searchLimit", count=count, regexp=regexp)
+            if index == "": break
+            self.mark_set("matchStart", index)
+            self.mark_set("matchEnd", "%s+%sc" % (index,count.get()))
+            self.tag_add(tag, "matchStart","matchEnd")

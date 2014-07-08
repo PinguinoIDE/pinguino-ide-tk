@@ -461,8 +461,6 @@ class PinguinoTools(object):
         fichier = open(os.path.join(os.path.expanduser(self.SOURCE_DIR), "stdout"), "w+")
 
         user_imports = self.get_user_imports_p8()
-        #for lib_dir in self.USER_P8_LIBS:
-            #user_imports.append("-I" + lib_dir)
 
         if board.bldr == 'boot2':
             sortie = Popen([self.COMPILER_8BIT,
@@ -479,8 +477,8 @@ class PinguinoTools(object):
                 "-DPROC=\"" + board.proc + "\"",\
                 "-DBOOT_VER=2",\
                 "--use-non-free",\
-                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'core'),\
-                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'libraries'),\
+                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'core'),\
+                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'libraries'),\
                 "-I" + os.path.dirname(filename),\
                 "--compile-only",\
                 "-o" + os.path.join(os.path.expanduser(self.SOURCE_DIR), 'main.o'),\
@@ -505,8 +503,8 @@ class PinguinoTools(object):
                 "-DPROC=\"" + board.proc + "\"",\
                 "-DBOOT_VER=4",\
                 "--use-non-free",\
-                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'core'),\
-                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'libraries'),\
+                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'core'),\
+                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'libraries'),\
                 "-I" + os.path.dirname(filename),\
                 "--compile-only",\
                 os.path.join(os.path.expanduser(self.SOURCE_DIR), 'main.c'),\
@@ -528,8 +526,8 @@ class PinguinoTools(object):
                 "-DPROC=\"" + board.proc + "\"",\
                 "-DBOOT_VER=0",\
                 "--use-non-free",\
-                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'core'),\
-                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'libraries'),\
+                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'core'),\
+                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'libraries'),\
                 "-I" + os.path.dirname(filename),\
                 "--compile-only",\
                 os.path.join(os.path.expanduser(self.SOURCE_DIR), 'main.c'),\

@@ -6,7 +6,7 @@ from PIL import ImageTk
 
 from Tkinter import Text, Frame, Menu, Button, Label, CENTER
 from Tkinter import RAISED, LEFT, TOP, X, BOTH, Y, BOTTOM, RIGHT, END, SUNKEN, NO, YES, DISABLED, NORMAL, FLAT, GROOVE, RIDGE
-from ttk import Notebook, Style, Treeview, Scrollbar, Separator
+from ttk import Notebook, Treeview, Scrollbar, Separator
 
 from styles import TkStyles
 from events.events import PinguinoEvents
@@ -55,6 +55,7 @@ class PinguinoIDE(Frame, PinguinoEvents):
         self.build_menu()
 
         self.buil_output()
+        self.build_status_bar()
         self.buil_toolbar()
         self.build_notebook()
         self.connect_events()
@@ -71,6 +72,21 @@ class PinguinoIDE(Frame, PinguinoEvents):
         elif os_name == "linux":
             os.environ["LD_LIBRARY_PATH"]="/usr/lib32:/usr/lib:/usr/lib64"
 
+    #----------------------------------------------------------------------
+    def build_status_bar(self):
+
+        frame_status = Frame(self.parent, height=18)
+        frame_status.pack(side=BOTTOM, expand=False, fill=X)
+
+        self.label_status_bar = Label(frame_status, anchor="w", text=self.get_status_board())
+        self.label_status_bar.pack(expand=True, fill=X, side=TOP)
+
+
+    #----------------------------------------------------------------------
+    def statusbar_ide(self, message):
+
+        self.label_status_bar.configure(text=message)
+
 
     #----------------------------------------------------------------------
     def build_notebook(self):
@@ -82,7 +98,7 @@ class PinguinoIDE(Frame, PinguinoEvents):
         self.banner.pack(side=LEFT, fill=BOTH, expand=True)
 
         self.noteBook = Notebook(self, style="TNotebook")
-        self.noteBook.pack(side=LEFT, fill=BOTH, expand=True)
+        #self.noteBook.pack(side=LEFT, fill=BOTH, expand=True)
 
 
     #----------------------------------------------------------------------
@@ -141,7 +157,7 @@ class PinguinoIDE(Frame, PinguinoEvents):
         links.add_command(label="Group", command=lambda :self.open_web_site("https://groups.google.com/forum/#!forum/pinguinocard"))
         links.add_command(label="Shop", command=lambda :self.open_web_site("http://shop.pinguino.cc/"))
         helpmenu.add_cascade(label="Links", menu=links)
-        helpmenu.add_command(label="About...", command=self.new_file)
+        helpmenu.add_command(label="About...", command=self.__show_about__)
         self.menuBar.add_cascade(label="Help", menu=helpmenu)
 
         self.master.bind_all("<Control-n>", self.new_file)

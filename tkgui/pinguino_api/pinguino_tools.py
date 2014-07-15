@@ -177,27 +177,35 @@ class PinguinoTools(object):
         hex_file = self.get_hex_file()
         board = self.get_board()
 
+        uploader = Uploader(hex_file, board)
+        result = uploader.write_hex()
+
+        """
         if board.arch == 8:
             uploader = Uploader(hex_file, board)
             result = uploader.write_hex()
 
         elif board.arch == 32:
             fichier = open(os.path.join(os.path.expanduser(self.SOURCE_DIR), 'stdout'), 'w+')
-            """ RB 19-06-2014 : pic32prog replace ubw32
+            
+            #RB 19-06-2014 : pic32prog
             sortie=Popen([os.path.join(os.path.dirname(self.P32_BIN), self.UPLOADER_32),
                           "-w",
                           hex_file,
                           "-r",
                           "-n"],
                          stdout=fichier, stderr=STDOUT)
-            """
+
+            #RB 19-06-2014 : ubw32/mhidflash
             sortie=Popen([os.path.join(os.path.dirname(self.P32_BIN), self.UPLOADER_32),
-                          "-S","-p",hex_file],
+                          "-S", "-p", hex_file],
                          stdout=fichier, stderr=STDOUT)
+
             sortie.communicate()
             fichier.seek(0)
             result = fichier.readlines()
             fichier.close()
+        """
 
         result = filter(lambda line:not line.isspace(), result)
         return result
@@ -399,11 +407,13 @@ class PinguinoTools(object):
 
 
     #----------------------------------------------------------------------
-    def remove_comments(self, text):
+    def remove_comments(self, textinput):
         #FIXME: replace comment with white lines for debugger
 
-        if type(text) == type([]):
-            text = "".join(text)
+        if type(textinput) == type([]):
+            text = "".join(textinput)
+        else:
+            text = textinput
 
         def replacer(match):
             s = match.group(0)
@@ -421,8 +431,9 @@ class PinguinoTools(object):
         )
         textout = re.sub(pattern, replacer, text)
 
-        if type(text) == type([]):
+        if type(textinput) == type([]):
             textout = textout.split("\n")
+            textout = map(lambda x:x+"\n", textout)
 
         return textout
 
@@ -440,15 +451,14 @@ class PinguinoTools(object):
             user_imports.append("-I" + lib_dir)
         return " ".join(user_imports)
 
-
     #----------------------------------------------------------------------
     def compile(self, filename):
         """ Compile.
 
         NB :    "--opt-code-size"   deprecated
                 "--use-non-free"    implicit -I and -L options for non-free headers and libs
-                "-I" + os.path.join(self.P8_DIR, 'sdcc', 'include', 'pic16'),\
-                "-I" + os.path.join(self.P8_DIR, 'sdcc', 'non-free', 'include', 'pic16'),\
+                "-I" + os.path.join(self.P8_DIR, '..', 'sdcc', 'include', 'pic16'),\
+                "-I" + os.path.join(self.P8_DIR, '..', 'sdcc', 'non-free', 'include', 'pic16'),\
         """
 
         ERROR = {"c": {},
@@ -461,6 +471,8 @@ class PinguinoTools(object):
         fichier = open(os.path.join(os.path.expanduser(self.SOURCE_DIR), "stdout"), "w+")
 
         user_imports = self.get_user_imports_p8()
+        #for lib_dir in self.USER_P8_LIBS:
+            #user_imports.append("-I" + lib_dir)
 
         if board.bldr == 'boot2':
             sortie = Popen([self.COMPILER_8BIT,
@@ -477,8 +489,8 @@ class PinguinoTools(object):
                 "-DPROC=\"" + board.proc + "\"",\
                 "-DBOOT_VER=2",\
                 "--use-non-free",\
-                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'core'),\
-                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'libraries'),\
+                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'core'),\
+                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'libraries'),\
                 "-I" + os.path.dirname(filename),\
                 "--compile-only",\
                 "-o" + os.path.join(os.path.expanduser(self.SOURCE_DIR), 'main.o'),\
@@ -503,8 +515,8 @@ class PinguinoTools(object):
                 "-DPROC=\"" + board.proc + "\"",\
                 "-DBOOT_VER=4",\
                 "--use-non-free",\
-                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'core'),\
-                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'libraries'),\
+                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'core'),\
+                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'libraries'),\
                 "-I" + os.path.dirname(filename),\
                 "--compile-only",\
                 os.path.join(os.path.expanduser(self.SOURCE_DIR), 'main.c'),\
@@ -526,13 +538,15 @@ class PinguinoTools(object):
                 "-DPROC=\"" + board.proc + "\"",\
                 "-DBOOT_VER=0",\
                 "--use-non-free",\
-                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'core'),\
-                "-I" + os.path.join(self.P8_DIR, 'pinguino', 'libraries'),\
+                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'core'),\
+                "-I" + os.path.join(self.P8_DIR, 'include', 'pinguino', 'libraries'),\
                 "-I" + os.path.dirname(filename),\
                 "--compile-only",\
                 os.path.join(os.path.expanduser(self.SOURCE_DIR), 'main.c'),\
                 "-o" + os.path.join(os.path.expanduser(self.SOURCE_DIR), 'main.o')] + user_imports,\
                 stdout=fichier, stderr=STDOUT)
+
+        print "DEBUG : %s" % self.P8_DIR
 
         sortie.communicate()
         if sortie.poll()!=0:
@@ -714,6 +728,7 @@ class PinguinoTools(object):
                             "_IDE_BINDIR_=" + self.P32_BIN,  #default /usr/bin
                             "_IDE_P32DIR_=" + self.P32_DIR,  #default /usr/share/pinguino-11.0/p32
                             "_IDE_SRCDIR_=" + self.SOURCE_DIR,
+                            "_IDE_USERHOMEDIR_=" + os.getenv("PINGUINO_USER_PATH"),  #default ~/.pinguino
 
                             "_IDE_HEAP_SIZE_=" + self.HEAPSIZE,
                             "_IDE_MIPS16_ENABLE_=" + self.MIPS16,

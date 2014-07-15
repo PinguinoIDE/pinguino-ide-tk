@@ -37,12 +37,12 @@ class PinguinoEvents(PinguinoEvents):
 
                         ("separator", None),
 
-                        ("edit-find", self.new_file),
-                        ("edit-find-replace", self.new_file),
+                        #("edit-find", self.new_file),
+                        #("edit-find-replace", self.new_file),
 
-                        ("separator", None),
+                        #("separator", None),
 
-                        ("applications-electronics", self.new_file),
+                        ("applications-electronics", self.__show_board_config__),
                         ("system-run", self.pinguino_compile),
                         ("emblem-downloads", self.pinguino_upload),
                         ]
@@ -310,10 +310,16 @@ class PinguinoEvents(PinguinoEvents):
     def highligh_line(self, line, color):
         """"""
 
-
     #----------------------------------------------------------------------
+    @Decorator.requiere_open_files()
     def pinguino_upload(self, event=None):
-        """"""
+        uploaded, result = self.pinguinoAPI.upload()
+        self.write_log(result)
+        if uploaded:
+            Dialogs.upload_done()
+        elif Dialogs.upload_fail(result):
+            self.pinguino_upload()
+
 
 
     #----------------------------------------------------------------------

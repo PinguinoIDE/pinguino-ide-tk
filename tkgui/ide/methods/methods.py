@@ -8,11 +8,12 @@ from Tkinter import Tk, CURRENT, LEFT, BOTH, Toplevel
 
 from ..child_windows.stdout import Stdout
 from ..child_windows.paths import Paths
-
+from ..child_windows.about import About
+from ..child_windows.board_config import BoardConfig
+from ..styles import TkStyles
 
 ########################################################################
 class PinguinoEvents(object):
-    """"""
 
 
     #----------------------------------------------------------------------
@@ -61,8 +62,14 @@ class PinguinoEvents(object):
 
         tabs = len(self.noteBook.tabs())
 
-        if tabs > 0: self.banner.pack_forget()
-        else: self.banner.pack(side=LEFT, fill=BOTH, expand=True)
+        if tabs > 0:
+            self.banner.pack_forget()
+            TkStyles.create_styles()
+            self.noteBook.pack(side=LEFT, fill=BOTH, expand=True)
+        else:
+            self.noteBook.pack_forget()
+            self.banner.pack(side=LEFT, fill=BOTH, expand=True)
+
 
 
     #----------------------------------------------------------------------
@@ -130,3 +137,32 @@ class PinguinoEvents(object):
         root = Toplevel()
         app = Paths(master=root, main=self)
         app.mainloop()
+
+    #----------------------------------------------------------------------
+    def __show_about__(self, event=None):
+
+        root = Toplevel()
+        app = About(master=root)
+        app.mainloop()
+
+    #----------------------------------------------------------------------
+    def __show_board_config__(self, event=None):
+
+        root = Toplevel()
+        app = BoardConfig(master=root, main=self)
+        app.mainloop()
+
+
+    #----------------------------------------------------------------------
+    def get_status_board(self):
+
+        self.set_board()
+        board = self.pinguinoAPI.get_board()
+        board_config = board.name
+
+        if board.arch == 8 and board.bldr == "boot4":
+            board_config += " - Boootloader: v4"
+        if board.arch == 8 and board.bldr == "boot2":
+            board_config += " - Boootloader: v1 & v2"
+
+        return board_config

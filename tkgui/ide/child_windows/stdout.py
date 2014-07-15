@@ -16,7 +16,7 @@ class Stdout(Frame):
         self.parent = master
 
         self.parent.geometry("640x480")
-        self.parent.title(os.getenv("NAME"))
+        self.parent.title(os.getenv("NAME") + " - Stdout")
 
         self.textedit = Text(self.parent, font="mono 10")
         self.textedit.pack(expand=True, fill=BOTH)

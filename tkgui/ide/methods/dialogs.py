@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
+import os
+
+from Tkinter import Toplevel
 
 from tkFileDialog import askopenfile, asksaveasfile
 from tkMessageBox import askyesno, showinfo, showwarning, showerror
 
-
-import os
 
 ########################################################################
 class Dialogs(object):
@@ -118,3 +119,16 @@ class Dialogs(object):
         """"""
         showinfo(os.getenv("NAME")+" - Compiled", "Compilation done!")
         return True
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def upload_done(cls):
+
+        showinfo(os.getenv("NAME")+" - Upload done", "File sucessfully uploaded to Pinguino.")
+        return True
+
+    #----------------------------------------------------------------------
+    @classmethod
+    def upload_fail(self, message):
+
+        return askyesno(os.getenv("NAME")+" - Upload fail", message+"\n\nTry again?")

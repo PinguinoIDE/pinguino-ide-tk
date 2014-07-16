@@ -2,20 +2,19 @@
 #-*- coding: utf-8 -*-
 
 import os
-import sys
 from datetime import datetime
 from PIL import ImageTk
 
-from Tkinter import Text, Button, Frame, END, FLAT, LEFT, Y, X, CURRENT, SEL_FIRST, SEL_LAST, INSERT, GROOVE
+from Tkinter import Button, Frame, END, FLAT, LEFT, Y, SEL_FIRST, SEL_LAST, INSERT
 
-from ..code_editor.pinguino_code_editor import PinguinoCodeEditor
-from ..methods.methods import PinguinoEvents
-from ..methods.dialogs import Dialogs
-from ..methods.decorators import Decorator
+from tkgui.ide.code_editor.pinguino_code_editor import PinguinoCodeEditor
+from tkgui.ide.methods.methods import PinguinoMethods
+from tkgui.ide.methods.dialogs import Dialogs
+from tkgui.ide.methods.decorators import Decorator
 
 
 ########################################################################
-class PinguinoEvents(PinguinoEvents):
+class PinguinoEvents(PinguinoMethods):
 
     #----------------------------------------------------------------------
     def connect_events(self):
@@ -69,7 +68,7 @@ class PinguinoEvents(PinguinoEvents):
 
         today = datetime.now()
         minimun = "void setup() {\n\t// put your setup code here, to run once:\n\n\t\n}\n\nvoid loop() {\n\t// put your main code here, to run repeatedly:\n\n}\n"
-        file_= """/*-----------------------------------------------------
+        file_ = """/*-----------------------------------------------------
 %s:  --<>
 %s: %s
 %s:
@@ -184,7 +183,6 @@ class PinguinoEvents(PinguinoEvents):
 
         textedit = self.get_current_textedit()
         textedit.edit_undo()
-        pass
 
 
     #----------------------------------------------------------------------

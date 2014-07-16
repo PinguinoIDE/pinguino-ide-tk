@@ -2,7 +2,6 @@
 #-*- coding: utf-8 -*-
 
 import os
-import sys
 
 from Tkinter import Frame, BOTH, X, TOP, Label, RIGHT, LEFT, Checkbutton, Button, BOTTOM, IntVar
 from ttk import Combobox

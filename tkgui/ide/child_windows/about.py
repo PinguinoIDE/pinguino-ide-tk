@@ -2,10 +2,9 @@
 #-*- coding: utf-8 -*-
 
 import os
-import sys
 
 from PIL import ImageTk
-from Tkinter import Frame, Label, BOTH, TOP, X, BOTTOM, Button, RIGHT, LEFT, FLAT, SUNKEN
+from Tkinter import Frame, Label, BOTH, TOP, X, BOTTOM, Button, RIGHT, LEFT, SUNKEN
 from ttk import Notebook, Style
 
 ########################################################################

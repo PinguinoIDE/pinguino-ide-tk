@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-import re
+from Tkinter import Text, END, DISABLED, NORMAL, IntVar
 
-from Tkinter import Text, INSERT, END, Label, DISABLED, NORMAL, IntVar
-
-from ..methods.syntax import directives, const
+from tkgui.ide.methods.syntax import directives, const
 
 ########################################################################
 class PinguinoTextEdit(Text):
@@ -129,8 +127,8 @@ class PinguinoTextEdit(Text):
             if index == "": break
             self.mark_set("matchStart", index)
             index = self.search("*/", "matchEnd", "searchLimit", count=count, regexp=False)
-            self.mark_set("matchEnd", "%s+%sc" % (index,count.get()))
-            self.tag_add("dcomment", "matchStart","matchEnd")
+            self.mark_set("matchEnd", "%s+%sc" % (index, count.get()))
+            self.tag_add("dcomment", "matchStart", "matchEnd")
 
 
     #----------------------------------------------------------------------
@@ -147,5 +145,5 @@ class PinguinoTextEdit(Text):
             index = self.search(pattern, "matchEnd", "searchLimit", count=count, regexp=regexp)
             if index == "": break
             self.mark_set("matchStart", index)
-            self.mark_set("matchEnd", "%s+%sc" % (index,count.get()))
-            self.tag_add(tag, "matchStart","matchEnd")
+            self.mark_set("matchEnd", "%s+%sc" % (index, count.get()))
+            self.tag_add(tag, "matchStart", "matchEnd")

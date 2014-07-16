@@ -2,9 +2,8 @@
 #-*- coding: utf-8 -*-
 
 import os
-import sys
 
-from Tkinter import Frame, LabelFrame, X, TOP, Radiobutton, LEFT, RIGHT, Label, BOTTOM, Button, BOTH, IntVar, StringVar, ACTIVE, DISABLED, Toplevel
+from Tkinter import Frame, LabelFrame, X, TOP, Radiobutton, LEFT, RIGHT, Label, BOTTOM, Button, BOTH, IntVar, StringVar, Toplevel
 from .board_config_advance import BoardConfigAdvance
 
 
@@ -144,11 +143,9 @@ class BoardConfig(Frame):
         frame_right = Frame(self.frame_8b)
         frame_right.pack(expand=True, fill=BOTH, side=RIGHT)
 
-        count = 0
         parent = frame_left  #left
         for board in arch_8:
             if arch_8.index(board) == (len(arch_8) / 2) + 1:
-                count = 0
                 parent = frame_right  #rigth
 
             radio = Radiobutton(parent, text=board.name, anchor="w", width=10, value=board.name, variable=self.dev8_var, command=lambda :self.set_board_name(board.name, "8"))
@@ -161,7 +158,6 @@ class BoardConfig(Frame):
 
             if name_checked == board.name: radio.select()
             #self.connect(radio, QtCore.SIGNAL("clicked()"), self.set_board_name(board.name, "8"))
-            count += 1
 
 
         #32bits
@@ -175,12 +171,9 @@ class BoardConfig(Frame):
         frame_right0 = Frame(self.frame_32b)
         frame_right0.pack(expand=True, fill=BOTH, side=RIGHT)
 
-
-        count = 0
         parent = frame_left0  #left
         for board in arch_32:
             if arch_32.index(board) == (len(arch_32) / 2) + 1:
-                count = 0
                 parent = frame_right0  #rigth
 
             radio = Radiobutton(parent, text=board.name, anchor="w", width=10, value=board.name, variable=self.dev32_var, command=lambda :self.set_board_name(board.name, "32"))
@@ -193,7 +186,7 @@ class BoardConfig(Frame):
 
             if name_checked == board.name: radio.select()
             #self.connect(radio, QtCore.SIGNAL("clicked()"), self.set_board_name(board.name, "32"))
-            count += 1
+
 
 
     #----------------------------------------------------------------------

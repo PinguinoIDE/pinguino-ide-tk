@@ -2,15 +2,16 @@
 #-*- coding: utf-8 -*-
 
 import os
-import sys
 from ConfigParser import RawConfigParser
 
 from PIL import ImageTk
-from Tkinter import Text, Frame, BOTH, Scrollbar, TOP, BOTTOM, RIGHT, X, Y, INSERT, Button, LabelFrame, LEFT, Label, Text, FLAT, Entry, END
+from Tkinter import Frame, TOP, RIGHT, X, INSERT, Button, LabelFrame, LEFT, Label, FLAT, Entry, END
 from tkFileDialog import askdirectory
 
-from ..methods.dialogs import Dialogs
-from ...pinguino_api.pinguino_config import PinguinoConfig
+from tkgui.ide.methods.dialogs import Dialogs
+from tkgui.pinguino_api.pinguino_config import PinguinoConfig
+from tkgui.pinguino_api.pinguino_config import PinguinoConfig
+
 
 ########################################################################
 class Paths(Frame):

@@ -2,17 +2,18 @@
 #-*- coding: utf-8 -*-
 
 import os
+
 from PIL import ImageTk
 
-from Tkinter import Text, Frame, Menu, Button, Label, CENTER
-from Tkinter import RAISED, LEFT, TOP, X, BOTH, Y, BOTTOM, RIGHT, END, SUNKEN, NO, YES, DISABLED, NORMAL, FLAT, GROOVE, RIDGE
-from ttk import Notebook, Treeview, Scrollbar, Separator
+from Tkinter import Text, Frame, Menu, Label, CENTER
+from Tkinter import LEFT, TOP, X, BOTH, BOTTOM, END, DISABLED, NORMAL, FLAT
+from ttk import Notebook, Separator
 
-from styles import TkStyles
-from events.events import PinguinoEvents
-from ..pinguino_api.pinguino import Pinguino, AllBoards
-from ..pinguino_api.pinguino_config import PinguinoConfig
-from .methods.config import Config
+from tkgui.ide.styles import TkStyles
+from tkgui.ide.events.events import PinguinoEvents
+from tkgui.pinguino_api.pinguino import Pinguino, AllBoards
+from tkgui.pinguino_api.pinguino_config import PinguinoConfig
+from tkgui.ide.methods.config import Config
 
 
 ########################################################################
@@ -48,10 +49,6 @@ class PinguinoIDE(Frame, PinguinoEvents):
 
         self.set_board()
 
-
-
-
-
         self.build_menu()
 
         self.buil_output()
@@ -71,6 +68,7 @@ class PinguinoIDE(Frame, PinguinoEvents):
 
         elif os_name == "linux":
             os.environ["LD_LIBRARY_PATH"]="/usr/lib32:/usr/lib:/usr/lib64"
+
 
     #----------------------------------------------------------------------
     def build_status_bar(self):
@@ -130,7 +128,7 @@ class PinguinoIDE(Frame, PinguinoEvents):
         self.menuBar.add_cascade(label="Edit", menu=editmenu)
 
         configmenu = Menu(self.menuBar, tearoff=0)
-        configmenu.add_command(label="Board Settings", command=self.new_file)
+        configmenu.add_command(label="Board Settings", command=self.__show_board_config__)
         configmenu.add_command(label="System paths", command=self.__show_paths__)
         self.menuBar.add_cascade(label="Configuration", menu=configmenu)
 

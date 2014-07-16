@@ -3,8 +3,8 @@
 
 from Tkinter import Frame, RIGHT, LEFT, BOTH, X, Y, Scrollbar, BOTTOM, FLAT
 
-from line_number import LineNumber
-from editor import PinguinoTextEdit
+from tkgui.ide.code_editor.line_number import LineNumber
+from tkgui.ide.code_editor.editor import PinguinoTextEdit
 
 ########################################################################
 class PinguinoCodeEditor(Frame):

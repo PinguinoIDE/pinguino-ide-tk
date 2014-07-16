@@ -4,16 +4,17 @@
 import os
 import webbrowser
 
-from Tkinter import Tk, CURRENT, LEFT, BOTH, Toplevel
+from Tkinter import LEFT, BOTH, Toplevel
 
-from ..child_windows.stdout import Stdout
-from ..child_windows.paths import Paths
-from ..child_windows.about import About
-from ..child_windows.board_config import BoardConfig
-from ..styles import TkStyles
+from tkgui.ide.child_windows.stdout import Stdout
+from tkgui.ide.child_windows.paths import Paths
+from tkgui.ide.child_windows.about import About
+from tkgui.ide.child_windows.board_config import BoardConfig
+from tkgui.ide.styles import TkStyles
+
 
 ########################################################################
-class PinguinoEvents(object):
+class PinguinoMethods(object):
 
 
     #----------------------------------------------------------------------

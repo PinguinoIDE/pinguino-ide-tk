@@ -3,8 +3,6 @@
 
 import os
 
-from Tkinter import Toplevel
-
 from tkFileDialog import askopenfile, asksaveasfile
 from tkMessageBox import askyesno, showinfo, showwarning, showerror
 

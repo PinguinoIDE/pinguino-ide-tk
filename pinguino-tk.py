@@ -72,9 +72,9 @@ if __name__ == "__main__":
 
     else:  #command line
 
-        from qtgui.pinguino_api.pinguino import Pinguino
-        from qtgui.pinguino_api.pinguino_config import PinguinoConfig
-        from qtgui.ide.methods.config import Config
+        from tkgui.pinguino_api.pinguino import Pinguino
+        from tkgui.pinguino_api.pinguino_config import PinguinoConfig
+        from tkgui.ide.methods.config import Config
 
         pinguino = Pinguino()
         PinguinoConfig.set_environ_vars()

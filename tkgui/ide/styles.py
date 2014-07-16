@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-from Tkinter import FLAT, GROOVE, RIDGE, BOTH
+from Tkinter import FLAT
 from ttk import Style
 
 ########################################################################

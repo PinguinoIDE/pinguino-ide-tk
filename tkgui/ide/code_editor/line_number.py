@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding: utf-8 -*-
 
-from Tkinter import Frame, Label, X, TOP, Text, Y, FLAT, DISABLED, END
+from Tkinter import Frame, TOP, Text, Y, FLAT, DISABLED
 
 ########################################################################
 class LineNumber(Frame):

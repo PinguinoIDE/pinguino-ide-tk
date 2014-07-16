@@ -9,7 +9,6 @@ import codecs
 
 from .pinguino_tools import PinguinoTools
 from .boards import boardlist as AllBoards
-#from ..ide.methods.constants import NAME
 
 ########################################################################
 class Pinguino(PinguinoTools):

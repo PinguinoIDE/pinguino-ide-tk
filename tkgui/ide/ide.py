@@ -193,7 +193,8 @@ class PinguinoIDE(Frame, PinguinoEvents):
             if os.path.isfile(abspath):
                 if abspath.endswith(".pde"):
                     label = os.path.split(abspath)[1]
-                    menu.add_command(label=label, command=lambda :self.open_file(abspath))
+                    #menu.add_command(label=label, command=lambda :self.open_file(abspath))
+                    menu.add_command(label=label, command=self.open_file_example_event(abspath))
 
             if os.path.isdir(abspath):
                 label = os.path.split(abspath)[1]
@@ -201,6 +202,12 @@ class PinguinoIDE(Frame, PinguinoEvents):
 
         return menu
 
+    #----------------------------------------------------------------------
+    def open_file_example_event(self, filename):
+
+        def intern_f():
+            self.open_file(filename)
+        return intern_f
 
     #----------------------------------------------------------------------
     def buil_toolbar(self):

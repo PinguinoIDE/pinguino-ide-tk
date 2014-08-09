@@ -101,11 +101,14 @@ class PinguinoEvents(PinguinoMethods):
     def open_file(self, filename=None):
 
         if filename is None:
-            file = Dialogs.set_open_file(self, "/home/yeison/Escritorio")
+            file = Dialogs.set_open_file(self, os.path.expanduser("~/"))
             if file is None: return
         else: file = open(filename, "r")
 
         filename = file.name
+
+        assert filename.endswith(".pde")
+
         content = "".join(file.readlines())
         file.close()
         frame_edit = PinguinoCodeEditor(self)

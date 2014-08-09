@@ -180,6 +180,7 @@ class PinguinoTools(object):
         uploader = Uploader(hex_file, board)
         result = uploader.write_hex()
 
+
         """
         if board.arch == 8:
             uploader = Uploader(hex_file, board)

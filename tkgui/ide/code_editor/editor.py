@@ -16,7 +16,7 @@ class PinguinoTextEdit(Text):
         self.create_syntas_tags()
         self.bind("<Key>", self.update_syntax)
 
-        self.config(maxundo=15, undo=True)
+        self.config(maxundo=15, undo=True, bg="white")
         self.update_linenumber()
 
 

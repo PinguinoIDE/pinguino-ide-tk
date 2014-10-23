@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python2
 #-*- coding: utf-8 -*-
 
-NAME = "Pinguino IDE"
+NAME = "Pinguino IDE tk"
 VERSION = "11.0"
 SUBVERSION = "beta.1"
 #DESCRIPTION = ""
@@ -10,7 +10,7 @@ SUBVERSION = "beta.1"
 ################################################################################
 
 """-------------------------------------------------------------------------
-    Pinguino IDE Tk
+    Pinguino IDE tk
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,12 @@ SUBVERSION = "beta.1"
 ################################################################################
 
 import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 import os
+
+import debugger
+debugger.Debugger(sys, clear=True)
 
 os.environ["NAME"] = NAME
 os.environ["VERSION"] = VERSION
@@ -43,6 +48,32 @@ if os.path.exists(os.path.abspath("pinguino_data")):
 else:
     os.environ["PINGUINO_DATA"] = os.getenv("PINGUINO_HOME")
 
+import argparse
+from tkgui.pinguino_api.boards import boardlist
+
+#----------------------------------------------------------------------
+def build_argparse():
+
+    parser = argparse.ArgumentParser(description="*** %s ***"%os.getenv("NAME"))
+    parser.add_argument("-v", "--version", dest="version", action="store_true", default=False, help="show %s version and exit"%os.getenv("NAME"))
+    parser.add_argument("-a", "--author", dest="author", action="store_true", default=False, help="show authors of this %s version and exit"%os.getenv("NAME"))
+    parser.add_argument("-f", "--filename", dest="filename", nargs=1, default=False, help="filename to process")
+    parser.add_argument("-l", "--boot", dest="bootloader", nargs=1, default=False, help="set bootloader option")
+    parser.add_argument("-x", "--upload", dest="upload", action="store_true", default=False, help="upload code")
+    parser.add_argument("-g", "--hex", dest="hex_file", action="store_true", default=False, help="print hex_file")
+
+    for board in boardlist:
+        parser.add_argument(board.shortarg, board.longarg, dest="board", const=board, action="store_const", default=False,
+                            help="compile code for " + board.board + " board")
+
+    return parser.parse_args()
+
+try:
+    parser = build_argparse()
+    parser_state = True
+except:
+    parser_state = False
+
 
 if __name__ == "__main__":
 
@@ -51,7 +82,7 @@ if __name__ == "__main__":
     python_path_modules = os.path.join(os.getenv("PINGUINO_DATA"), "python_requirements")
     if os.path.isdir(python_path_modules): sys.path.append(python_path_modules)
 
-    if len(sys.argv) == 1:
+    if len(sys.argv) == 1 or not parser_state:
 
         from Tkinter import Tk
         from tkgui.ide import PinguinoIDE
@@ -70,7 +101,7 @@ if __name__ == "__main__":
         #root.destroy()
 
 
-    else:  #command line
+    elif parser_state:  #command line
 
         from tkgui.pinguino_api.pinguino import Pinguino
         from tkgui.pinguino_api.pinguino_config import PinguinoConfig
@@ -84,7 +115,7 @@ if __name__ == "__main__":
         PinguinoConfig.update_pinguino_extra_options(config, Pinguino)
         PinguinoConfig.update_user_libs(pinguino)
 
-        parser = pinguino.build_argparse()
+        #parser = pinguino.build_argparse()
 
         if parser.version:
             print("\t" + VERSION)

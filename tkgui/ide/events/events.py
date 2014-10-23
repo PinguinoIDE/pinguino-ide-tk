@@ -53,7 +53,7 @@ class PinguinoEvents(PinguinoMethods):
                 frame.pack(side=LEFT, fill=Y, padx=2, pady=2)
 
             else:
-                icon = os.path.join("tkgui", "resources", "themes", "pinguino11", icon+".png")
+                icon = os.path.join("tkgui", "resources", "themes", "pinguino11", "icons", "24", icon+".png")
                 #eimg = ImageTk.PhotoImage(Image.open(icon))
                 eimg = ImageTk.PhotoImage(file=icon)
 

@@ -2,6 +2,8 @@
 #-*- coding: utf-8 -*-
 
 import usb
+import sys
+import debugger
 
 
 ########################################################################
@@ -45,10 +47,15 @@ class baseUploader(object):
         self.board = board
         self.report = []
 
+
 # ------------------------------------------------------------------------------
     def add_report(self, message):
         """ display message in the log window """
         self.report.append(message)
+
+        import sys
+        reload(sys)
+        sys.stdout.write("DEBUG : " + message + "\r\n")
 
 # ------------------------------------------------------------------------------
     def getDevice(self):
@@ -60,19 +67,24 @@ class baseUploader(object):
                     return device
         return self.ERR_DEVICE_NOT_FOUND
 
-    # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
     def closeDevice(self):
         """ Close currently-open USB device """
-        self.handle.releaseInterface()
-
-
+        try:
+            self.handle.releaseInterface()
+        except:
+            pass
 
 ########################################################################
 class Uploader(object):
-    """Universal uploder class"""
+    """Universal uploader class"""
 
     #----------------------------------------------------------------------
     def __init__(self, hex_file, board):
+
+        sys.stderr = debugger.Debugger("stderr")
+        sys.stdout = debugger.Debugger("stdout")
+
 
         if board.bldr == "noboot":
 
@@ -92,7 +104,6 @@ class Uploader(object):
         elif board.bldr == "microchip":
             from uploader32 import uploader32 as Uploader
 
-
         self.uploader = Uploader(hex_file, board)
 
 
@@ -101,3 +112,4 @@ class Uploader(object):
 
         self.uploader.writeHex()
         return self.uploader.report
+
